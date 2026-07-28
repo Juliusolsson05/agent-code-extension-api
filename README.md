@@ -56,7 +56,7 @@ export const { activate, deactivate } = defineExtension({
 `vite.config.ts`:
 
 ```ts
-import { extensionViteConfig } from 'agent-code-extension-api/vite'
+import { extensionViteConfig } from 'agent-code-extension-api'
 export default extensionViteConfig()
 ```
 

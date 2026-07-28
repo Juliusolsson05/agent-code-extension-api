@@ -11,12 +11,19 @@
       "import": "./dist/index.js"
     }
   },
-  "files": ["dist"],
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "build": "tsc -p tsconfig.json",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "prepare": "npm run build"
   },
-  "keywords": ["agent-code", "extension", "sdk"],
+  "keywords": [
+    "agent-code",
+    "extension",
+    "sdk"
+  ],
   "license": "MIT",
   "devDependencies": {
     "typescript": "^5.5.0"
