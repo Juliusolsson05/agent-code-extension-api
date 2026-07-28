@@ -8,6 +8,7 @@
 // Every method returns a Promise, on purpose: an extension runs in a sandboxed
 // iframe and reaches the host only over postMessage, where nothing can be
 // synchronous. The runtime the host injects fulfils this shape (see the frame
-// bootstrap). Tier 0 — storage/ui/theme — needs no permission; anything more is a
-// declared capability granted at install.
+// bootstrap). Tier 0 — storage/ui/theme — needs no permission; the observe groups
+// below are Tier 1, each gated behind a declared manifest capability granted at
+// install (the broker rejects an ungranted call).
 export {};

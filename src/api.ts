@@ -8,8 +8,9 @@
 // Every method returns a Promise, on purpose: an extension runs in a sandboxed
 // iframe and reaches the host only over postMessage, where nothing can be
 // synchronous. The runtime the host injects fulfils this shape (see the frame
-// bootstrap). Tier 0 — storage/ui/theme — needs no permission; anything more is a
-// declared capability granted at install.
+// bootstrap). Tier 0 — storage/ui/theme — needs no permission; the observe groups
+// below are Tier 1, each gated behind a declared manifest capability granted at
+// install (the broker rejects an ungranted call).
 
 export type JsonValue =
   | string
@@ -19,8 +20,35 @@ export type JsonValue =
   | JsonValue[]
   | { [key: string]: JsonValue }
 
+// --- Tier-1 observe snapshots ------------------------------------------------
+// Curated, fully-serializable projections of host state — never the live objects,
+// which carry renderer-only handles. Point-in-time reads; live updates arrive via
+// the matching subscribe() (the host pushes a change nudge, you re-read).
+
+export type ExtensionWorkspaceSnapshot = {
+  activeTabId: string | null
+  tabIds: string[]
+  sessionCount: number
+}
+
+export type ExtensionSessionSnapshot = {
+  id: string
+  /** Provider / terminal / extension-view kind, or null if unset. */
+  kind: string | null
+  cwd: string
+  title: string | null
+}
+
+export type ExtensionPaneSnapshot = {
+  tabId: string
+  /** Session ids of the leaves in this tab's tile tree, in tree order. */
+  leafSessionIds: string[]
+}
+
 export interface AgentCodeApiV1 {
   readonly extension: {
+    /** This extension's id — its manifest id and storage namespace. */
+    readonly id: string
     readonly apiVersion: 1
   }
 
@@ -45,5 +73,32 @@ export interface AgentCodeApiV1 {
      *  inline-SVG / chart consumers that cannot use the cascade. The host also
      *  pushes fresh tokens into the frame on every theme change. */
     tokens(): Promise<Record<string, string>>
+  }
+
+  // --- Tier 1 — read-only metadata (capability-gated) ------------------------
+  // Each requires a declared manifest permission (workspace.observe /
+  // sessions.observe / panes.observe). The broker rejects the call if the grant is
+  // absent, so an extension that did not request the capability never reaches these.
+  // observe() is a snapshot; subscribe() fires on change — re-read via observe().
+
+  readonly workspace: {
+    /** Point-in-time workspace shape. Requires `workspace.observe`. */
+    observe(): Promise<ExtensionWorkspaceSnapshot>
+    /** Fire on any workspace change; returns an unsubscribe. Re-read via observe(). */
+    subscribe(listener: () => void): () => void
+  }
+
+  readonly sessions: {
+    /** All sessions' identity/shape. Requires `sessions.observe`. */
+    observe(): Promise<ExtensionSessionSnapshot[]>
+    /** Fire on any session change; returns an unsubscribe. Re-read via observe(). */
+    subscribe(listener: () => void): () => void
+  }
+
+  readonly panes: {
+    /** The tile layout as leaf ids per tab. Requires `panes.observe`. */
+    observe(): Promise<ExtensionPaneSnapshot[]>
+    /** Fire on any pane-layout change; returns an unsubscribe. Re-read via observe(). */
+    subscribe(listener: () => void): () => void
   }
 }
