@@ -15,8 +15,12 @@
 // dev guards throw at activate() unless it is defined at build time.
 //
 // Usage — vite.config.ts:
-//   import { extensionViteConfig } from 'agent-code-extension-api/vite'
+//   import { extensionViteConfig } from 'agent-code-extension-api'
 //   export default extensionViteConfig()
+//
+// NOTE the specifier: the package exposes exactly ONE export path ("." in
+// package.json), so the `/vite` subpath this comment used to name resolves to
+// nothing — an author copying it got a module-not-found before their first build.
 
 export type ExtensionViteOptions = {
   /** Entry module path. Default: 'src/index.ts'. Must match manifest `entry` once built. */

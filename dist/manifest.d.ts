@@ -41,8 +41,21 @@ export type ExtensionContributions = {
     settings?: ExtensionSettingContribution[];
     keybindings?: ExtensionKeybindingContribution[];
 };
-/** A power requested beyond the always-granted Tier-0 API. Granted at install. */
-export type ExtensionCapability = 'workspace.observe' | 'sessions.observe' | 'panes.observe' | 'fs.read' | 'transcript.read' | 'git.read' | 'sessions.prompt' | 'fs.write' | 'git.commit' | 'network.fetch';
+/**
+ * A power requested beyond the always-granted Tier-0 API. Granted at install.
+ *
+ * ── THIS LIST MUST MATCH WHAT THE HOST IMPLEMENTS, NOT WHAT IT PLANS TO ──
+ * It previously also declared fs.read, transcript.read, git.read, sessions.prompt,
+ * fs.write, git.commit and network.fetch. None of them were implemented anywhere:
+ * no request method could carry them, no broker arm performed them, and the host
+ * now REFUSES to install a manifest that asks for one.
+ *
+ * Keeping them here was worse than useless. This package exists so an author gets
+ * a type error instead of a runtime surprise — and it delivered the exact opposite:
+ * `permissions: ['fs.write']` type-checked cleanly and then failed the install.
+ * A capability belongs in this union only once the host can actually perform it.
+ */
+export type ExtensionCapability = 'workspace.observe' | 'sessions.observe' | 'panes.observe';
 export type ExtensionActivationEvent = 'onStartupFinished' | '*' | `onCommand:${string}` | `onView:${string}`;
 export type ExtensionManifest = {
     id: string;
