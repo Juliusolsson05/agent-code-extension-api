@@ -18,6 +18,25 @@ export type ExtensionPaneSnapshot = {
     /** Session ids of the leaves in this tab's tile tree, in tree order. */
     leafSessionIds: string[];
 };
+export type ExtensionTextFile = {
+    sessionId: string;
+    /** Normalized project-relative path; the host never returns the root here. */
+    path: string;
+    text: string;
+    size: number;
+    mtimeMs: number;
+};
+export type ExtensionFilesApi = {
+    /**
+     * Read a bounded UTF-8 file in a live session's project. Requires `fs.read`.
+     * The explicit target is required even in a view: focus can change while an
+     * asynchronous request is pending, and background runtimes have no focus.
+     */
+    readText(options: {
+        sessionId: string;
+        path: string;
+    }): Promise<ExtensionTextFile>;
+};
 export interface AgentCodeApiV1 {
     readonly extension: {
         /** This extension's id — its manifest id and storage namespace. */

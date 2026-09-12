@@ -1,6 +1,6 @@
 {
   "name": "agent-code-extension-api",
-  "version": "0.2.0",
+  "version": "0.6.0",
   "description": "Types and authoring helpers for building Agent Code extensions.",
   "type": "module",
   "main": "dist/index.js",
@@ -17,7 +17,10 @@
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "typecheck": "tsc --noEmit",
-    "prepare": "npm run build"
+    "prepare": "npm run build",
+    "test:author": "npm run build && tsc -p examples/counter/tsconfig.json && node --test testing/authoring.test.mjs",
+    "test": "npm run test:author",
+    "check:dist": "node testing/check-dist.mjs"
   },
   "keywords": [
     "agent-code",
@@ -26,6 +29,7 @@
   ],
   "license": "MIT",
   "devDependencies": {
-    "typescript": "^5.5.0"
+    "typescript": "^5.5.0",
+    "vite": "7.3.6"
   }
 }
