@@ -1,6 +1,6 @@
 # agent-code-extension-api
 
-Types and build helpers for [Agent Code](https://github.com/Juliusolsson05/agent-code) extensions. API v2 gives one shared runtime ownership of commands and state while independently mounted view modules own their DOM. SDK 0.6 adds the first scoped project service, `fs.read`. The `defineExtension` helper and API v1 types remain available for existing bundles.
+Types and build helpers for [Agent Code](https://github.com/Juliusolsson05/agent-code) extensions. API v2 gives one shared runtime ownership of commands and state while independently mounted view modules own their DOM. SDK 0.7 adds bounded, versioned project-file writes alongside scoped reads. The `defineExtension` helper and API v1 types remain available for existing bundles.
 
 ## A v2 extension
 
@@ -86,19 +86,28 @@ Run `vite build` and commit the entire `dist/` directory, including shared chunk
 
 The runtime API provides extension identity, namespaced durable storage, and the API v2 filesystem service. The view API additionally provides `ui.close()`, `ui.showToast()`, theme tokens and permissioned metadata observation. A background runtime has no implicit focused view or project.
 
-Declare `"fs.read"` in the manifest, then call the same API from a runtime or view:
+Declare `"fs.read"` and/or `"fs.write"` in the manifest, then call the same API from a runtime or view:
 
 ```ts
 const file = await context.api.files.readText({
   sessionId: 'the-session-you-are-targeting',
   path: 'src/index.ts',
 })
+await context.api.files.writeText({
+  sessionId: file.sessionId,
+  path: file.path,
+  text: file.text.replace('before', 'after'),
+  expectedVersion: file.version,
+})
 ```
 
 Main resolves the live session id to its spawn cwd. The path must be relative and
 cannot escape through a symlink. Reads accept UTF-8 text files up to 96 KiB. There
 is no implicit focused target because focus can change while a call is pending.
-Filesystem writes, transcript, Git, prompting and network APIs are not exposed yet.
+Writes accept UTF-8 text up to 64 KiB and publish atomically. Use `expectedVersion:
+null` for create-only, or pass the opaque version returned by `readText`; stale
+writes reject without replacing newer bytes. Transcript, Git, prompting and network
+APIs are not exposed yet.
 
 Storage allows 256 keys and 1 MiB of encoded state per extension, with each value also subject to the JSON limits below. Reads and writes share an ordered queue (32 pending per extension, 256 globally). Oversized writes fail without replacing the previous snapshot. Corrupt or unreadable saved files are preserved and reported as errors; repair the saved state before retrying.
 

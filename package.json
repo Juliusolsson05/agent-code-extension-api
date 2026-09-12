@@ -1,6 +1,6 @@
 {
   "name": "agent-code-extension-api",
-  "version": "0.6.0",
+  "version": "0.7.0",
   "description": "Types and authoring helpers for building Agent Code extensions.",
   "type": "module",
   "main": "dist/index.js",

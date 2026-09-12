@@ -16,7 +16,16 @@ export default defineView<{ count: number }>({
     // The host journey exercises the SDK surface from the independently built
     // view as well as the runtime; a type-only fixture would miss broker drift.
     void context.api.files.readText({ sessionId: 'fixture-session', path: 'extension-readable.txt' })
-      .then(file => window.parent.postMessage({ kind: 'fixture:file', fileText: file.text }, '*'))
+      .then(async file => {
+        const written = await context.api.files.writeText({
+          sessionId: 'fixture-session', path: `extension-view-${context.view.instanceId}.txt`,
+          text: 'written by SDK view\n', expectedVersion: null,
+        })
+        window.parent.postMessage({
+          kind: 'fixture:file', fileText: file.text, fileVersion: file.version,
+          writtenPath: written.path,
+        }, '*')
+      })
     return unsubscribe
   },
 })

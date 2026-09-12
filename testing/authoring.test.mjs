@@ -13,7 +13,7 @@ test('builds independent browser modules from the public SDK and a typed manifes
   try {
     const manifest = await buildAuthorFixture(root)
     assert.equal(manifest.apiVersion, 2)
-    assert.deepEqual(manifest.permissions, ['fs.read'])
+    assert.deepEqual(manifest.permissions, ['fs.read', 'fs.write'])
     assert.deepEqual(manifest.contributes.themes, [{ id: 'managed.night', title: 'Counter Night', colors: { canvas: '#102030', ink: '#f0e0d0', accent: '#78abcd' } }])
     const runtime = await import(pathToFileURL(join(root, manifest.entry)).href)
     const view = await import(pathToFileURL(join(root, manifest.contributes.views[0].entry)).href)

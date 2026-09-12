@@ -12,6 +12,12 @@ export default defineRuntime({
       sessionId: 'fixture-session',
       path: 'extension-readable.txt',
     }))
+    context.registerCommand('managed.write', () => context.api.files.writeText({
+      sessionId: 'fixture-session',
+      path: 'extension-runtime-written.txt',
+      text: 'written by SDK runtime\n',
+      expectedVersion: null,
+    }))
     context.registerCommand('managed.arm', () => {
       const timer = setInterval(() => count++, 20)
       context.subscriptions.push({ dispose() { clearInterval(timer) } })

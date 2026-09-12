@@ -52,6 +52,17 @@ export type ExtensionTextFile = {
   text: string
   size: number
   mtimeMs: number
+  /** Opaque compare-and-swap token accepted by writeText. */
+  version: string
+}
+
+export type ExtensionTextFileWrite = {
+  sessionId: string
+  path: string
+  size: number
+  mtimeMs: number
+  /** The next opaque token required to replace this version. */
+  version: string
 }
 
 export type ExtensionFilesApi = {
@@ -61,6 +72,17 @@ export type ExtensionFilesApi = {
    * asynchronous request is pending, and background runtimes have no focus.
    */
   readText(options: { sessionId: string; path: string }): Promise<ExtensionTextFile>
+
+  /**
+   * Atomically create or replace a UTF-8 file up to 64 KiB. Requires `fs.write`.
+   * null creates only; replacing requires the version returned by readText.
+   */
+  writeText(options: {
+    sessionId: string
+    path: string
+    text: string
+    expectedVersion: string | null
+  }): Promise<ExtensionTextFileWrite>
 }
 
 export interface AgentCodeApiV1 {

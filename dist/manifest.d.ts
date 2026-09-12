@@ -51,15 +51,15 @@ export type ExtensionContributions = {
  * ── THIS LIST MUST MATCH WHAT THE HOST IMPLEMENTS, NOT WHAT IT PLANS TO ──
  * It previously declared Tier 2/3 names before their transports existed. The host
  * removed that vocabulary and now restores a name only with its request, broker,
- * implementation and boundary tests; `fs.read` is the first such restored service.
+ * implementation and boundary tests; scoped reads and writes are the first restored services.
  *
  * Keeping them here was worse than useless. This package exists so an author gets
  * a type error instead of a runtime surprise — and it delivered the exact opposite:
- * `permissions: ['fs.write']` type-checked cleanly and then failed the install.
+ * `permissions: ['fs.write']` once type-checked cleanly and then failed the install.
  * A capability belongs in this union only once the host can actually perform it.
  */
-export type ExtensionCapability = 'workspace.observe' | 'sessions.observe' | 'panes.observe' | 'fs.read';
-type ExtensionCapabilityV1 = Exclude<ExtensionCapability, 'fs.read'>;
+export type ExtensionCapability = 'workspace.observe' | 'sessions.observe' | 'panes.observe' | 'fs.read' | 'fs.write';
+type ExtensionCapabilityV1 = Exclude<ExtensionCapability, 'fs.read' | 'fs.write'>;
 export type ExtensionActivationEvent = 'onStartupFinished' | '*' | `onCommand:${string}` | `onView:${string}`;
 type ExtensionManifestBase = {
     id: string;

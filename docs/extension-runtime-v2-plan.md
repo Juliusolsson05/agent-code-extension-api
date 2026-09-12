@@ -49,3 +49,8 @@ contexts. Its target is an explicit live session id and project-relative path;
 the host resolves the main-owned cwd, enforces containment and bounds UTF-8 reads.
 The typed counter fixture declares the permission, and the host Electron journey
 executes the built API from both isolated contexts.
+
+SDK 0.7.0 adds `fs.write` on the same explicit session/path authority. Mutations
+are UTF-8-only, byte-bounded and atomic; create-only calls use a null expectation,
+while replacements require the opaque version returned by `fs.read`. The host and
+SDK-built runtime/view journey cover consent, conflicts, containment and real bytes.

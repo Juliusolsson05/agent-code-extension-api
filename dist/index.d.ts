@@ -1,4 +1,4 @@
-export type { AgentCodeApiV1, ExtensionFilesApi, ExtensionTextFile, JsonValue } from './api.js';
+export type { AgentCodeApiV1, ExtensionFilesApi, ExtensionTextFile, ExtensionTextFileWrite, JsonValue, } from './api.js';
 export type { Disposable, ViewMount, ExtensionContext, ExtensionModule } from './module.js';
 export { defineExtension } from './module.js';
 export type { ExtensionManifest, ExtensionContributions, ExtensionCommandContribution, ExtensionViewContribution, ExtensionSettingContribution, ExtensionKeybindingContribution, ExtensionCapability, ExtensionActivationEvent, ExtensionViewMount, } from './manifest.js';
