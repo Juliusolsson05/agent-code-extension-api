@@ -45,6 +45,54 @@ export type ExtensionPaneSnapshot = {
   leafSessionIds: string[]
 }
 
+export type ExtensionTextFile = {
+  sessionId: string
+  /** Normalized project-relative path; the host never returns the root here. */
+  path: string
+  text: string
+  size: number
+  mtimeMs: number
+  /** Opaque compare-and-swap token accepted by writeText. */
+  version: string
+}
+
+export type ExtensionTextFileWrite = {
+  sessionId: string
+  path: string
+  size: number
+  mtimeMs: number
+  /** The next opaque token required to replace this version. */
+  version: string
+}
+
+export type ExtensionFilesApi = {
+  /**
+   * Read a bounded UTF-8 file in a live session's project. Requires `fs.read`.
+   * The explicit target is required even in a view: focus can change while an
+   * asynchronous request is pending, and background runtimes have no focus.
+   */
+  readText(options: { sessionId: string; path: string }): Promise<ExtensionTextFile>
+
+  /**
+   * Atomically create or replace a UTF-8 file up to 64 KiB. Requires `fs.write`.
+   * null creates only; replacing requires the version returned by readText.
+   */
+  writeText(options: {
+    sessionId: string
+    path: string
+    text: string
+    expectedVersion: string | null
+  }): Promise<ExtensionTextFileWrite>
+}
+
+export type ExtensionNotificationsApi = {
+  /**
+   * Show a short app-wide status toast. Requires `notifications.show`.
+   * The host attributes the message to this extension; it is not an OS alert.
+   */
+  show(message: string): Promise<void>
+}
+
 export interface AgentCodeApiV1 {
   readonly extension: {
     /** This extension's id — its manifest id and storage namespace. */
