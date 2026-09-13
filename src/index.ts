@@ -2,6 +2,7 @@
 export type {
   AgentCodeApiV1,
   ExtensionFilesApi,
+  ExtensionNotificationsApi,
   ExtensionTextFile,
   ExtensionTextFileWrite,
   JsonValue,

@@ -18,6 +18,10 @@ export default defineRuntime({
       text: 'written by SDK runtime\n',
       expectedVersion: null,
     }))
+    context.registerCommand('managed.notify', async () => {
+      await context.api.notifications.show('Managed background task complete')
+      return 'notified'
+    })
     context.registerCommand('managed.arm', () => {
       const timer = setInterval(() => count++, 20)
       context.subscriptions.push({ dispose() { clearInterval(timer) } })

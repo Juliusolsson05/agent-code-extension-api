@@ -54,3 +54,7 @@ SDK 0.7.0 adds `fs.write` on the same explicit session/path authority. Mutations
 are UTF-8-only, byte-bounded and atomic; create-only calls use a null expectation,
 while replacements require the opaque version returned by `fs.read`. The host and
 SDK-built runtime/view journey cover consent, conflicts, containment and real bytes.
+
+SDK 0.8.0 adds `notifications.show` to v2 runtimes and views. The permissioned,
+bounded app-toast channel lets background work report completion after its last
+view closes, while host chrome supplies the installed extension's identity.

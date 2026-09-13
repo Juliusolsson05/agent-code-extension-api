@@ -48,7 +48,8 @@ export type ExtensionContributions = {
  * ── THIS LIST MUST MATCH WHAT THE HOST IMPLEMENTS, NOT WHAT IT PLANS TO ──
  * It previously declared Tier 2/3 names before their transports existed. The host
  * removed that vocabulary and now restores a name only with its request, broker,
- * implementation and boundary tests; scoped reads and writes are the first restored services.
+ * implementation and boundary tests. Scoped files and short background
+ * notifications are the first restored services.
  *
  * Keeping them here was worse than useless. This package exists so an author gets
  * a type error instead of a runtime surprise — and it delivered the exact opposite:
@@ -61,7 +62,11 @@ export type ExtensionCapability =
   | 'panes.observe'
   | 'fs.read'
   | 'fs.write'
-type ExtensionCapabilityV1 = Exclude<ExtensionCapability, 'fs.read' | 'fs.write'>
+  | 'notifications.show'
+type ExtensionCapabilityV1 = Exclude<
+  ExtensionCapability,
+  'fs.read' | 'fs.write' | 'notifications.show'
+>
 
 export type ExtensionActivationEvent =
   | 'onStartupFinished'

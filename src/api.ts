@@ -85,6 +85,14 @@ export type ExtensionFilesApi = {
   }): Promise<ExtensionTextFileWrite>
 }
 
+export type ExtensionNotificationsApi = {
+  /**
+   * Show a short app-wide status toast. Requires `notifications.show`.
+   * The host attributes the message to this extension; it is not an OS alert.
+   */
+  show(message: string): Promise<void>
+}
+
 export interface AgentCodeApiV1 {
   readonly extension: {
     /** This extension's id — its manifest id and storage namespace. */

@@ -1,6 +1,6 @@
 # agent-code-extension-api
 
-Types and build helpers for [Agent Code](https://github.com/Juliusolsson05/agent-code) extensions. API v2 gives one shared runtime ownership of commands and state while independently mounted view modules own their DOM. SDK 0.7 adds bounded, versioned project-file writes alongside scoped reads. The `defineExtension` helper and API v1 types remain available for existing bundles.
+Types and build helpers for [Agent Code](https://github.com/Juliusolsson05/agent-code) extensions. API v2 gives one shared runtime ownership of commands and state while independently mounted view modules own their DOM. SDK 0.8 adds permissioned app notifications for background work alongside scoped project files. The `defineExtension` helper and API v1 types remain available for existing bundles.
 
 ## A v2 extension
 
@@ -84,7 +84,17 @@ Run `vite build` and commit the entire `dist/` directory, including shared chunk
 - For interactions, a runtime calls `registerRequest(name, handler)`. A view calls `context.runtime.request(name, input)`. The handler receives the input and a host-issued `{ id, instanceId }` view identity. Validate your application's input shape inside the handler; the transport validates bounded JSON.
 - Command results and errors are acknowledged. A timed-out command is not replayed: its outcome may be unknown. Closing a view cancels requests that have not been dispatched and rejects pending replies. Already started work may finish; it is never replayed.
 
-The runtime API provides extension identity, namespaced durable storage, and the API v2 filesystem service. The view API additionally provides `ui.close()`, `ui.showToast()`, theme tokens and permissioned metadata observation. A background runtime has no implicit focused view or project.
+The runtime API provides extension identity, namespaced durable storage, scoped files, and permissioned app notifications. The view API additionally provides `ui.close()`, `ui.showToast()`, theme tokens and permissioned metadata observation. A background runtime has no implicit focused view or project.
+
+Declare `"notifications.show"` to report completion from a runtime after its
+views are closed:
+
+```ts
+await context.api.notifications.show('Focus session complete')
+```
+
+Messages are app toasts of at most 200 characters. Agent Code adds the extension
+name, so the extension supplies only the status text. They are not OS notifications.
 
 Declare `"fs.read"` and/or `"fs.write"` in the manifest, then call the same API from a runtime or view:
 

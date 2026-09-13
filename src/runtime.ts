@@ -1,4 +1,9 @@
-import type { AgentCodeApiV1, ExtensionFilesApi, JsonValue } from './api.js'
+import type {
+  AgentCodeApiV1,
+  ExtensionFilesApi,
+  ExtensionNotificationsApi,
+  JsonValue,
+} from './api.js'
 
 export type RuntimeDisposable = { dispose(): void | Promise<void> }
 export type RuntimeViewIdentity = { readonly id: string; readonly instanceId: string }
@@ -10,6 +15,7 @@ export type RuntimeApiV2 = {
   readonly extension: { readonly id: string; readonly apiVersion: 2 }
   readonly storage: AgentCodeApiV1['storage']
   readonly files: ExtensionFilesApi
+  readonly notifications: ExtensionNotificationsApi
 }
 
 export type RuntimeContext = {
@@ -30,6 +36,7 @@ export type ViewContext<State extends JsonValue = JsonValue> = {
   readonly api: Omit<AgentCodeApiV1, 'extension'> & {
     readonly extension: { readonly id: string; readonly apiVersion: 2 }
     readonly files: ExtensionFilesApi
+    readonly notifications: ExtensionNotificationsApi
   }
   readonly view: RuntimeViewIdentity
   readonly runtime: {
