@@ -26,6 +26,39 @@ test('builds independent browser modules from the public SDK and a typed manifes
   } finally { await rm(root, { recursive: true, force: true }) }
 })
 
+test('emits the production JSX runtime even when the shell exports NODE_ENV=development', async () => {
+  // Regression for "jsxDEV is not a function" inside the extension frame. The
+  // preset bundles React's production runtime, whose jsx-dev-runtime export is
+  // undefined, so a dev JSX transform installs cleanly and then crashes on first
+  // render. NODE_ENV=development is exactly what authors export to keep npm from
+  // dropping devDependencies, so the transform must not depend on it.
+  const root = await mkdtemp(join(tmpdir(), 'agent-code-sdk-jsx-'))
+  const previous = process.env.NODE_ENV
+  process.env.NODE_ENV = 'development'
+  try {
+    await writeFile(join(root, 'package.json'), JSON.stringify({ type: 'module' }))
+    await writeFile(join(root, 'view.jsx'), 'export const View = () => <div>hi</div>')
+    const preset = extensionViteConfig({ entry: join(root, 'view.jsx'), fileName: 'view' })
+    await build({ ...preset, root, configFile: false, envDir: false, logLevel: 'warn',
+      // Mirrors @vitejs/plugin-react's config hook, so the preset's key is merged
+      // the same way it is in a real React extension build.
+      plugins: [{ name: 'automatic-jsx', config: () => ({ esbuild: { jsx: 'automatic' } }) }],
+      build: { ...preset.build, outDir: join(root, 'dist'), minify: false,
+        // React is not an SDK dependency; the assertion is about the import the
+        // transform emits, not about bundling React itself.
+        rollupOptions: { ...preset.build.rollupOptions, external: [/^react(\/|$)/] },
+      },
+    })
+    const output = await readFile(join(root, 'dist/view.js'), 'utf8')
+    assert.match(output, /react\/jsx-runtime/)
+    assert.doesNotMatch(output, /jsxDEV|jsx-dev-runtime/)
+  } finally {
+    if (previous === undefined) delete process.env.NODE_ENV
+    else process.env.NODE_ENV = previous
+    await rm(root, { recursive: true, force: true })
+  }
+})
+
 test('retains the v1 single-entry build with a custom filename and bundled dynamic import', async () => {
   const root = await mkdtemp(join(tmpdir(), 'agent-code-sdk-legacy-'))
   try {

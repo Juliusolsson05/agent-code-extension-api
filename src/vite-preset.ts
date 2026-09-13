@@ -45,6 +45,17 @@ export function extensionViteConfig(options: ExtensionViteOptions = {}): Record<
     define: {
       'process.env.NODE_ENV': JSON.stringify('production'),
     },
+    // WHY pin jsxDev: the define above selects React's PRODUCTION runtime, but
+    // Vite picks the JSX transform from the shell's NODE_ENV instead
+    // (`jsxDev: !isProduction`). A build run with NODE_ENV=development — the
+    // documented workaround for npm dropping devDependencies under production —
+    // emitted `jsxDEV` calls against a production jsx-dev-runtime whose export is
+    // undefined. The bundle installed fine and then threw "jsxDEV is not a
+    // function" on first render inside the sandboxed frame, where the author
+    // cannot see why. Timer and Mini Games both shipped that bug before pinning
+    // NODE_ENV=production in their build scripts. Vite merges this with
+    // @vitejs/plugin-react's own `esbuild.jsx` setting.
+    esbuild: { jsxDev: false },
     build: {
       cssCodeSplit: false,
       lib: {

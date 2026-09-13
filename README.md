@@ -73,6 +73,8 @@ export default extensionViteConfig({
 })
 ```
 
+For React, spread the whole preset and add the plugin: `{ ...extensionViteConfig({ entries }), plugins: [react()] }`. Do not copy selected keys; the preset also pins the production JSX transform, so the build works whatever `NODE_ENV` your shell exports. Author packages are expected to be ESM (`"type": "module"`).
+
 Run `vite build` and commit the entire `dist/` directory, including shared chunks. The manifest paths point to the built files. For local development, choose the repository folder containing the manifest in Agent Code's **Load extension from folder** action. The preset bundles your dependencies, including your own React if used. Apply emitted CSS from the view, or inject your styles; the host does not automatically load every stylesheet in a bundle.
 
 ## Lifetime and communication
