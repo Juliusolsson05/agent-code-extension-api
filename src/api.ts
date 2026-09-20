@@ -124,6 +124,18 @@ export type ExtensionServicesApi = {
   invoke(serviceId: string, name: string, params?: JsonValue): Promise<JsonValue | undefined>
 }
 
+/**
+ * With the `service.transport` permission, a view (or runtime) may also speak
+ * HTTP to its OWN running service through the host proxy — no other network is
+ * reachable. Fetch a path on the frame's own origin; the host dials the
+ * service's loopback endpoint:
+ *
+ *   fetch(`./__service/${serviceId}/api/state`)        // from a view frame
+ *
+ * Plain methods only (GET/HEAD/POST/PUT/DELETE/PATCH); WebSockets are not
+ * proxied. A service that is not running answers 404.
+ */
+
 export interface AgentCodeApiV1 {
   readonly extension: {
     /** This extension's id — its manifest id and storage namespace. */

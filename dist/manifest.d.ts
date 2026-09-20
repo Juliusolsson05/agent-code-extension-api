@@ -70,8 +70,8 @@ export type ExtensionContributions = {
  * `permissions: ['fs.write']` once type-checked cleanly and then failed the install.
  * A capability belongs in this union only once the host can actually perform it.
  */
-export type ExtensionCapability = 'workspace.observe' | 'sessions.observe' | 'panes.observe' | 'fs.read' | 'fs.write' | 'notifications.show' | 'service.run';
-type ExtensionCapabilityV1 = Exclude<ExtensionCapability, 'fs.read' | 'fs.write' | 'notifications.show' | 'service.run'>;
+export type ExtensionCapability = 'workspace.observe' | 'sessions.observe' | 'panes.observe' | 'fs.read' | 'fs.write' | 'notifications.show' | 'service.run' | 'service.transport';
+type ExtensionCapabilityV1 = Exclude<ExtensionCapability, 'fs.read' | 'fs.write' | 'notifications.show' | 'service.run' | 'service.transport'>;
 export type ExtensionActivationEvent = 'onStartupFinished' | '*' | `onCommand:${string}` | `onView:${string}`;
 type ExtensionManifestBase = {
     id: string;

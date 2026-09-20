@@ -76,9 +76,10 @@ export type ExtensionCapability =
   | 'fs.write'
   | 'notifications.show'
   | 'service.run'
+  | 'service.transport'
 type ExtensionCapabilityV1 = Exclude<
   ExtensionCapability,
-  'fs.read' | 'fs.write' | 'notifications.show' | 'service.run'
+  'fs.read' | 'fs.write' | 'notifications.show' | 'service.run' | 'service.transport'
 >
 
 export type ExtensionActivationEvent =
