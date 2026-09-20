@@ -3,6 +3,9 @@ export type {
   AgentCodeApiV1,
   ExtensionFilesApi,
   ExtensionNotificationsApi,
+  ExtensionServicesApi,
+  ExtensionServiceHandle,
+  ExtensionServiceStatus,
   ExtensionTextFile,
   ExtensionTextFileWrite,
   JsonValue,
@@ -14,6 +17,7 @@ export type {
   ExtensionContributions,
   ExtensionCommandContribution,
   ExtensionViewContribution,
+  ExtensionServiceContribution,
   ExtensionSettingContribution,
   ExtensionKeybindingContribution,
   ExtensionCapability,
@@ -27,3 +31,5 @@ export type { ExtensionThemeColorKey, ExtensionThemeColor, ExtensionThemeContrib
 
 export { defineRuntime, defineView } from './runtime.js'
 export type { RuntimeDisposable, RuntimeViewIdentity, RuntimeApiV2, RuntimeContext, RuntimeModule, ViewContext, ViewModule } from './runtime.js'
+export { defineService, runService } from './service.js'
+export type { ServiceModule, ServiceContext, ServiceRequest, ServiceEndpoint } from './service.js'

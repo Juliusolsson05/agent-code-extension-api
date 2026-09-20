@@ -23,6 +23,17 @@ export type ExtensionViewContribution = {
   entry?: string
 }
 
+export type ExtensionServiceContribution = {
+  /** Namespaced `<extensionId>.…`, like every other contributed id. */
+  id: string
+  /** Optional display name for Settings/runtime surfaces. */
+  title?: string
+  /** Built JS module run as a native child process. Must stay inside the bundle.
+   *  See service.ts for the module contract; the `service.run` permission is
+   *  required for the host to ever start it. */
+  entry: string
+}
+
 export type ExtensionSettingContribution =
   | { id: string; title: string; description?: string; type: 'boolean'; default: boolean }
   | { id: string; title: string; description?: string; type: 'number'; default: number }
@@ -40,6 +51,7 @@ export type ExtensionContributions = {
   settings?: ExtensionSettingContribution[]
   keybindings?: ExtensionKeybindingContribution[]
   themes?: ExtensionThemeContribution[]
+  services?: ExtensionServiceContribution[]
 }
 
 /**
@@ -63,9 +75,10 @@ export type ExtensionCapability =
   | 'fs.read'
   | 'fs.write'
   | 'notifications.show'
+  | 'service.run'
 type ExtensionCapabilityV1 = Exclude<
   ExtensionCapability,
-  'fs.read' | 'fs.write' | 'notifications.show'
+  'fs.read' | 'fs.write' | 'notifications.show' | 'service.run'
 >
 
 export type ExtensionActivationEvent =
@@ -90,5 +103,5 @@ type ExtensionManifestBase = {
 // type, while the host independently validates the JSON and real file containment.
 export type ExtensionManifest = ExtensionManifestBase & (
   | { apiVersion: 1; permissions?: ExtensionCapabilityV1[]; contributes?: ExtensionContributions }
-  | { apiVersion: 2; permissions?: ExtensionCapability[]; contributes?: Omit<ExtensionContributions, 'views'> & { views?: Array<ExtensionViewContribution & { entry: string }> } }
+  | { apiVersion: 2; permissions?: ExtensionCapability[]; contributes?: Omit<ExtensionContributions, 'views' | 'services'> & { views?: Array<ExtensionViewContribution & { entry: string }>; services?: ExtensionServiceContribution[] } }
 )

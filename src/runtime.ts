@@ -2,6 +2,7 @@ import type {
   AgentCodeApiV1,
   ExtensionFilesApi,
   ExtensionNotificationsApi,
+  ExtensionServicesApi,
   JsonValue,
 } from './api.js'
 
@@ -16,6 +17,7 @@ export type RuntimeApiV2 = {
   readonly storage: AgentCodeApiV1['storage']
   readonly files: ExtensionFilesApi
   readonly notifications: ExtensionNotificationsApi
+  readonly services: ExtensionServicesApi
 }
 
 export type RuntimeContext = {
@@ -37,6 +39,7 @@ export type ViewContext<State extends JsonValue = JsonValue> = {
     readonly extension: { readonly id: string; readonly apiVersion: 2 }
     readonly files: ExtensionFilesApi
     readonly notifications: ExtensionNotificationsApi
+    readonly services: ExtensionServicesApi
   }
   readonly view: RuntimeViewIdentity
   readonly runtime: {

@@ -64,6 +64,38 @@ export type ExtensionNotificationsApi = {
      */
     show(message: string): Promise<void>;
 };
+/** Live status of a declared service. `pid` is diagnostics only. */
+export type ExtensionServiceHandle = {
+    state: 'running';
+    serviceId: string;
+    pid: number;
+    /** Loopback endpoints the service reported at ready(). */
+    endpoints: Array<{
+        name: string;
+        port: number;
+    }>;
+};
+export type ExtensionServiceStatus = {
+    state: 'stopped';
+    serviceId: string;
+} | ExtensionServiceHandle;
+export type ExtensionServicesApi = {
+    /**
+     * Start a declared service (`contributes.services`). Requires `service.run`.
+     * This is the only call that can launch native code; it resolves once the
+     * service reported ready, with its pid and any loopback endpoints.
+     */
+    start(serviceId: string): Promise<ExtensionServiceHandle>;
+    /** Stop a running service (idempotent). Requires `service.run`. */
+    stop(serviceId: string): Promise<void>;
+    /** Current status without starting anything. Requires `service.run`. */
+    status(serviceId: string): Promise<ExtensionServiceStatus>;
+    /**
+     * Call a named handler registered by the service (see runService). Requires
+     * `service.run` and a prior start(). Bounded JSON in and out.
+     */
+    invoke(serviceId: string, name: string, params?: JsonValue): Promise<JsonValue | undefined>;
+};
 export interface AgentCodeApiV1 {
     readonly extension: {
         /** This extension's id — its manifest id and storage namespace. */
