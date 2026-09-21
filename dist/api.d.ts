@@ -95,6 +95,22 @@ export type ExtensionServicesApi = {
      * `service.run` and a prior start(). Bounded JSON in and out.
      */
     invoke(serviceId: string, name: string, params?: JsonValue): Promise<JsonValue | undefined>;
+    /**
+     * Make a running service reachable from this machine's local network.
+     * Requires `net.listen` separate from `service.run`: the HOST binds the LAN
+     * listener (OS-chosen port in the reply) and reverse-proxies to the service's
+     * loopback endpoint; the listener closes when the service stops or you pass
+     * lan:false. Share the returned port on a trusted network only.
+     */
+    expose(serviceId: string, lan: boolean): Promise<ExtensionServiceExposure>;
+};
+export type ExtensionServiceExposure = {
+    serviceId: string;
+    lan: false;
+} | {
+    serviceId: string;
+    lan: true;
+    port: number;
 };
 /**
  * With the `service.transport` permission, a view (or runtime) may also speak
