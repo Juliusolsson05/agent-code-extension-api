@@ -62,7 +62,11 @@ const errorText = (error: unknown): string => String((error as Error | undefined
  *  entry's top level. Throws when not run inside an Agent Code service process
  *  (no parentPort) so local `node entry.js` fails loudly instead of hanging. */
 export function runService(module: ServiceModule): void {
-  const port = (process as { parentPort?: ParentPortLike }).parentPort
+  // Reach parentPort through globalThis rather than the bare `process`
+  // identifier: this package deliberately ships without @types/node, and a
+  // module-local `declare const process` would lie about the global shape for
+  // every consumer that bundles this file into a browser context.
+  const port = (globalThis as { process?: { parentPort?: ParentPortLike } }).process?.parentPort
   if (!port) throw new Error('runService() requires an Agent Code service process (process.parentPort).')
   const handlers = new Map<string, (params: JsonValue | undefined) => JsonValue | void | Promise<JsonValue | void>>()
   let ready = false
