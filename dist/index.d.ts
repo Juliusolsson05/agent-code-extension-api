@@ -1,10 +1,12 @@
-export type { AgentCodeApiV1, ExtensionFilesApi, ExtensionNotificationsApi, ExtensionTextFile, ExtensionTextFileWrite, JsonValue, } from './api.js';
+export type { AgentCodeApiV1, ExtensionFilesApi, ExtensionNotificationsApi, ExtensionServicesApi, ExtensionServiceHandle, ExtensionServiceStatus, ExtensionNetApi, NetFetchInit, NetFetchResult, ExtensionTextFile, ExtensionTextFileWrite, JsonValue, } from './api.js';
 export type { Disposable, ViewMount, ExtensionContext, ExtensionModule } from './module.js';
 export { defineExtension } from './module.js';
-export type { ExtensionManifest, ExtensionContributions, ExtensionCommandContribution, ExtensionViewContribution, ExtensionSettingContribution, ExtensionKeybindingContribution, ExtensionCapability, ExtensionActivationEvent, ExtensionViewMount, } from './manifest.js';
+export type { ExtensionManifest, ExtensionContributions, ExtensionCommandContribution, ExtensionViewContribution, ExtensionServiceContribution, ExtensionSettingContribution, ExtensionKeybindingContribution, ExtensionCapability, ExtensionActivationEvent, ExtensionViewMount, } from './manifest.js';
 export { extensionViteConfig } from './vite-preset.js';
 export type { ExtensionViteOptions } from './vite-preset.js';
 export { EXTENSION_THEME_COLOR_KEYS } from './themes.js';
 export type { ExtensionThemeColorKey, ExtensionThemeColor, ExtensionThemeContribution } from './themes.js';
 export { defineRuntime, defineView } from './runtime.js';
 export type { RuntimeDisposable, RuntimeViewIdentity, RuntimeApiV2, RuntimeContext, RuntimeModule, ViewContext, ViewModule } from './runtime.js';
+export { defineService, runService } from './service.js';
+export type { ServiceModule, ServiceContext, ServiceRequest, ServiceEndpoint } from './service.js';

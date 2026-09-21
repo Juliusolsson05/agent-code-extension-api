@@ -64,6 +64,87 @@ export type ExtensionNotificationsApi = {
      */
     show(message: string): Promise<void>;
 };
+/** Live status of a declared service. `pid` is diagnostics only. */
+export type ExtensionServiceHandle = {
+    state: 'running';
+    serviceId: string;
+    pid: number;
+    /** Loopback endpoints the service reported at ready(). */
+    endpoints: Array<{
+        name: string;
+        port: number;
+    }>;
+};
+export type ExtensionServiceStatus = {
+    state: 'stopped';
+    serviceId: string;
+} | ExtensionServiceHandle;
+export type ExtensionServicesApi = {
+    /**
+     * Start a declared service (`contributes.services`). Requires `service.run`.
+     * This is the only call that can launch native code; it resolves once the
+     * service reported ready, with its pid and any loopback endpoints.
+     */
+    start(serviceId: string): Promise<ExtensionServiceHandle>;
+    /** Stop a running service (idempotent). Requires `service.run`. */
+    stop(serviceId: string): Promise<void>;
+    /** Current status without starting anything. Requires `service.run`. */
+    status(serviceId: string): Promise<ExtensionServiceStatus>;
+    /**
+     * Call a named handler registered by the service (see runService). Requires
+     * `service.run` and a prior start(). Bounded JSON in and out.
+     */
+    invoke(serviceId: string, name: string, params?: JsonValue): Promise<JsonValue | undefined>;
+    /**
+     * Make a running service reachable from this machine's local network.
+     * Requires `net.listen` separate from `service.run`: the HOST binds the LAN
+     * listener (OS-chosen port in the reply) and reverse-proxies to the service's
+     * loopback endpoint; the listener closes when the service stops or you pass
+     * lan:false. Share the returned port on a trusted network only.
+     */
+    expose(serviceId: string, lan: boolean): Promise<ExtensionServiceExposure>;
+};
+export type ExtensionServiceExposure = {
+    serviceId: string;
+    lan: false;
+} | {
+    serviceId: string;
+    lan: true;
+    port: number;
+};
+export type NetFetchInit = {
+    httpMethod?: 'GET' | 'HEAD' | 'POST' | 'PUT' | 'DELETE' | 'PATCH';
+    headers?: Array<{
+        name: string;
+        value: string;
+    }>;
+    body?: string;
+};
+export type NetFetchResult = {
+    status: number;
+    contentType: string;
+    body: string;
+};
+export type ExtensionNetApi = {
+    /**
+     * Brokered outbound fetch. Requires `net.connect`. The sandbox never opens a
+     * socket — the host checks the target and performs the request. v1 policy:
+     * literal private/loopback IP hosts only (e.g. `http://192.168.1.42:5192/`),
+     * no DNS names, no public addresses; responses are text and capped.
+     */
+    fetch(url: string, init?: NetFetchInit): Promise<NetFetchResult>;
+};
+/**
+ * With the `service.transport` permission, a view (or runtime) may also speak
+ * HTTP to its OWN running service through the host proxy — no other network is
+ * reachable. Fetch a path on the frame's own origin; the host dials the
+ * service's loopback endpoint:
+ *
+ *   fetch(`./__service/${serviceId}/api/state`)        // from a view frame
+ *
+ * Plain methods only (GET/HEAD/POST/PUT/DELETE/PATCH); WebSockets are not
+ * proxied. A service that is not running answers 404.
+ */
 export interface AgentCodeApiV1 {
     readonly extension: {
         /** This extension's id — its manifest id and storage namespace. */

@@ -14,6 +14,16 @@ export type ExtensionViewContribution = {
     /** Required for apiVersion 2; exports mount(element, context). */
     entry?: string;
 };
+export type ExtensionServiceContribution = {
+    /** Namespaced `<extensionId>.…`, like every other contributed id. */
+    id: string;
+    /** Optional display name for Settings/runtime surfaces. */
+    title?: string;
+    /** Built JS module run as a native child process. Must stay inside the bundle.
+     *  See service.ts for the module contract; the `service.run` permission is
+     *  required for the host to ever start it. */
+    entry: string;
+};
 export type ExtensionSettingContribution = {
     id: string;
     title: string;
@@ -44,6 +54,7 @@ export type ExtensionContributions = {
     settings?: ExtensionSettingContribution[];
     keybindings?: ExtensionKeybindingContribution[];
     themes?: ExtensionThemeContribution[];
+    services?: ExtensionServiceContribution[];
 };
 /**
  * A power requested beyond the always-granted Tier-0 API. Granted at install.
@@ -59,8 +70,8 @@ export type ExtensionContributions = {
  * `permissions: ['fs.write']` once type-checked cleanly and then failed the install.
  * A capability belongs in this union only once the host can actually perform it.
  */
-export type ExtensionCapability = 'workspace.observe' | 'sessions.observe' | 'panes.observe' | 'fs.read' | 'fs.write' | 'notifications.show';
-type ExtensionCapabilityV1 = Exclude<ExtensionCapability, 'fs.read' | 'fs.write' | 'notifications.show'>;
+export type ExtensionCapability = 'workspace.observe' | 'sessions.observe' | 'panes.observe' | 'fs.read' | 'fs.write' | 'notifications.show' | 'service.run' | 'service.transport' | 'net.listen' | 'net.connect';
+type ExtensionCapabilityV1 = Exclude<ExtensionCapability, 'fs.read' | 'fs.write' | 'notifications.show' | 'service.run' | 'service.transport' | 'net.listen' | 'net.connect'>;
 export type ExtensionActivationEvent = 'onStartupFinished' | '*' | `onCommand:${string}` | `onView:${string}`;
 type ExtensionManifestBase = {
     id: string;
@@ -79,10 +90,11 @@ export type ExtensionManifest = ExtensionManifestBase & ({
 } | {
     apiVersion: 2;
     permissions?: ExtensionCapability[];
-    contributes?: Omit<ExtensionContributions, 'views'> & {
+    contributes?: Omit<ExtensionContributions, 'views' | 'services'> & {
         views?: Array<ExtensionViewContribution & {
             entry: string;
         }>;
+        services?: ExtensionServiceContribution[];
     };
 });
 export {};
