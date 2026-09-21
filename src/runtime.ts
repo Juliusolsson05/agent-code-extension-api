@@ -3,6 +3,7 @@ import type {
   ExtensionFilesApi,
   ExtensionNotificationsApi,
   ExtensionServicesApi,
+  ExtensionNetApi,
   JsonValue,
 } from './api.js'
 
@@ -18,6 +19,7 @@ export type RuntimeApiV2 = {
   readonly files: ExtensionFilesApi
   readonly notifications: ExtensionNotificationsApi
   readonly services: ExtensionServicesApi
+  readonly net: ExtensionNetApi
 }
 
 export type RuntimeContext = {
@@ -40,6 +42,7 @@ export type ViewContext<State extends JsonValue = JsonValue> = {
     readonly files: ExtensionFilesApi
     readonly notifications: ExtensionNotificationsApi
     readonly services: ExtensionServicesApi
+    readonly net: ExtensionNetApi
   }
   readonly view: RuntimeViewIdentity
   readonly runtime: {

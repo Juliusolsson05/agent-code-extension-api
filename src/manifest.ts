@@ -78,9 +78,10 @@ export type ExtensionCapability =
   | 'service.run'
   | 'service.transport'
   | 'net.listen'
+  | 'net.connect'
 type ExtensionCapabilityV1 = Exclude<
   ExtensionCapability,
-  'fs.read' | 'fs.write' | 'notifications.show' | 'service.run' | 'service.transport' | 'net.listen'
+  'fs.read' | 'fs.write' | 'notifications.show' | 'service.run' | 'service.transport' | 'net.listen' | 'net.connect'
 >
 
 export type ExtensionActivationEvent =

@@ -136,6 +136,28 @@ export type ExtensionServiceExposure =
   | { serviceId: string; lan: false }
   | { serviceId: string; lan: true; port: number }
 
+export type NetFetchInit = {
+  httpMethod?: 'GET' | 'HEAD' | 'POST' | 'PUT' | 'DELETE' | 'PATCH'
+  headers?: Array<{ name: string; value: string }>
+  body?: string
+}
+
+export type NetFetchResult = {
+  status: number
+  contentType: string
+  body: string
+}
+
+export type ExtensionNetApi = {
+  /**
+   * Brokered outbound fetch. Requires `net.connect`. The sandbox never opens a
+   * socket — the host checks the target and performs the request. v1 policy:
+   * literal private/loopback IP hosts only (e.g. `http://192.168.1.42:5192/`),
+   * no DNS names, no public addresses; responses are text and capped.
+   */
+  fetch(url: string, init?: NetFetchInit): Promise<NetFetchResult>
+}
+
 /**
  * With the `service.transport` permission, a view (or runtime) may also speak
  * HTTP to its OWN running service through the host proxy — no other network is
