@@ -194,7 +194,9 @@ A runtime has no UI, focus or theme of its own. Views pass it what it needs, suc
 
 **Network.** `net.fetch(url, { httpMethod, headers, body, responseType })` asks the host to fetch; the sandbox has no network of its own.
 - Private/loopback IP literals need `net.connect`. The exact HTTPS origins in your manifest's `networkOrigins` need `net.origins`. Anything else is refused.
-- The verb field is `httpMethod`. Bodies are strings up to 64 KiB; responses are capped at 256 KiB; redirects are refused.
+- The verb field is `httpMethod`. Bodies are strings up to 64 KiB; responses are capped at 256 KiB (the host stops reading at the cap); redirects are refused.
+- Both limits are fixed host limits, not per-call options. They exist because every result crosses a bounded transport. A **background runtime** receives results through a JSON channel of at most 128 Ki characters. So there, a `base64` body above about 96 KiB is refused with "exceeds the JSON limits". A view receives up to the full 256 KiB. Fetch large binaries from a view, or split them.
+- Headers the host uses to identify callers (`x-agent-code-transport`, `forwarded`, `x-forwarded-*`) are refused on every `net.fetch`.
 - The result is `{ status, contentType, body, bodyEncoding }`. Pass `responseType: 'base64'` for binary bodies and check `bodyEncoding`: hosts older than this release ignore `responseType` and return text.
 
 **Notifications.** `notifications.show(message)` shows an in-app toast in every Agent Code window, prefixed with your extension's name. Messages are at most 200 characters. This is the way to report background work while no view is open. It is not an OS notification.
