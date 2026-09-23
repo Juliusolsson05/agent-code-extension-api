@@ -42,3 +42,10 @@ void reader
 void legacyReader
 void legacyWriter
 void legacyNotifier
+// Older API-v2 hosts lack secrets. The type must force the documented feature
+// detection, or a missing guard compiles and then crashes on such a host.
+// @ts-expect-error api.secrets is optional; narrow with `if (runtime.api.secrets)` first
+const unguardedSecret = runtime.api.secrets.get('api-key')
+const guardedSecret = runtime.api.secrets ? runtime.api.secrets.get('api-key') : Promise.resolve(null)
+void unguardedSecret
+void guardedSecret

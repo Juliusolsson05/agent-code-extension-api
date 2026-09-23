@@ -16,7 +16,15 @@ export type RuntimeApiV2 = {
     readonly notifications: ExtensionNotificationsApi;
     readonly services: ExtensionServicesApi;
     readonly net: ExtensionNetApi;
-    readonly secrets: ExtensionSecretsApi;
+    /**
+     * Optional on purpose: API-v2 hosts older than Agent Code ≥ the first
+     * supporting version do not provide it, and a secrets-only extension requests
+     * no permission, so such a host still loads the extension. Declaring it
+     * required made the documented `if (context.api.secrets)` guard look always
+     * true to the compiler, so a missing guard compiled and then crashed on an
+     * older host. Same modelling as `NetFetchResult.bodyEncoding?`.
+     */
+    readonly secrets?: ExtensionSecretsApi;
 };
 export type RuntimeContext = {
     readonly api: RuntimeApiV2;
@@ -42,7 +50,8 @@ export type ViewContext<State extends JsonValue = JsonValue> = {
         readonly notifications: ExtensionNotificationsApi;
         readonly services: ExtensionServicesApi;
         readonly net: ExtensionNetApi;
-        readonly secrets: ExtensionSecretsApi;
+        /** Optional for the same reason as `RuntimeApiV2.secrets`: feature-detect. */
+        readonly secrets?: ExtensionSecretsApi;
     };
     readonly view: RuntimeViewIdentity;
     readonly runtime: {
