@@ -1,4 +1,5 @@
-import type { ExtensionManifest, ExtensionThemeContribution, RuntimeContext } from '../../dist/index.js'
+import type { ExtensionManifest, ExtensionThemeContribution, RuntimeContext, TransportAttestation } from '../../dist/index.js'
+import { TRANSPORT_ATTESTATION, TRANSPORT_ATTESTATION_HEADER } from '../../dist/index.js'
 
 const base = { id: 'example', name: 'Example', description: 'Type contract fixture', version: '1', entry: 'runtime.js' }
 const view = { id: 'example.main', title: 'Example', mount: 'panel' as const }
@@ -49,3 +50,12 @@ const unguardedSecret = runtime.api.secrets.get('api-key')
 const guardedSecret = runtime.api.secrets ? runtime.api.secrets.get('api-key') : Promise.resolve(null)
 void unguardedSecret
 void guardedSecret
+// The attestation contract is the host's literal wire value; a widened string
+// type would let a service compare against a typo.
+const attestedHeader: 'x-agent-code-transport' = TRANSPORT_ATTESTATION_HEADER
+const attestations: TransportAttestation[] = [TRANSPORT_ATTESTATION.service, TRANSPORT_ATTESTATION.lan]
+// @ts-expect-error Only the two host-set values exist
+const unknownAttestation: TransportAttestation = 'local'
+void attestedHeader
+void attestations
+void unknownAttestation
