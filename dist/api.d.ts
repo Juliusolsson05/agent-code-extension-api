@@ -153,6 +153,12 @@ export type ExtensionNetApi = {
  * id; deleted on uninstall. `set` rejects when the OS cannot encrypt — there
  * is no plaintext fallback. Keys: 1–64 chars of [a-zA-Z0-9._-]; values:
  * 1–4096 characters; at most 32 keys.
+ *
+ * FEATURE-DETECT IT: typed on every API-v2 context, but API-v2 hosts released
+ * before SDK 0.10.0 do not provide it, and a secrets-only extension requests no
+ * permission, so an older host still loads the extension. Guard with
+ * `if (context.api.secrets)` and never fall back to `storage` for a credential.
+ * Invalid arguments reject (views too, on hosts with agent-code#1151).
  */
 export type ExtensionSecretsApi = {
     /** The stored value, or null when absent or no longer decryptable. */
