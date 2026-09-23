@@ -122,8 +122,8 @@ export type NetFetchInit = {
     /**
      * 'base64' returns the raw response bytes base64-encoded — use it for audio,
      * images or any binary body (text decoding would corrupt them). Default
-     * 'text'. Hosts before Agent Code #1150 ignore this field; check
-     * `bodyEncoding` on the result.
+     * 'text'. Hosts older than Agent Code ≥ the first supporting version ignore
+     * this field; check `bodyEncoding` on the result.
      */
     responseType?: 'text' | 'base64';
 };
@@ -131,7 +131,8 @@ export type NetFetchResult = {
     status: number;
     contentType: string;
     body: string;
-    /** What the host actually returned. Absent only from hosts before #1150. */
+    /** What the host actually returned. Absent only from hosts older than
+     *  Agent Code ≥ the first supporting version. */
     bodyEncoding?: 'text' | 'base64';
 };
 export type ExtensionNetApi = {
@@ -142,23 +143,30 @@ export type ExtensionNetApi = {
      *   requiring `net.connect`;
      * - the exact HTTPS origins listed in the manifest's `networkOrigins`,
      *   requiring `net.origins`.
-     * Anything else is refused. Redirects are refused, responses are capped
-     * (256 KiB), and header values never appear in host errors or logs.
+     * Anything else is refused. Redirects are refused, request bodies are capped
+     * at 64 KiB and responses at 256 KiB, and header values never appear in host
+     * errors or logs.
+     *
+     * Timeouts are fixed host limits, not per-call options: the host aborts a
+     * request to a private address after 10 s and one to a declared origin after
+     * 15 s (a public API crosses the internet; a LAN peer should answer fast),
+     * and the promise rejects with a "timed out" error.
      */
     fetch(url: string, init?: NetFetchInit): Promise<NetFetchResult>;
 };
 /**
- * Per-extension credentials (API v2, no permission). Encrypted by the OS
+ * Per-extension credentials (API v2, no permission; Agent Code ≥ the first
+ * supporting version). Encrypted by the OS
  * keychain through the host (Electron safeStorage); scoped to this extension's
  * id; deleted on uninstall. `set` rejects when the OS cannot encrypt — there
  * is no plaintext fallback. Keys: 1–64 chars of [a-zA-Z0-9._-]; values:
  * 1–4096 characters; at most 32 keys.
  *
- * FEATURE-DETECT IT: typed on every API-v2 context, but API-v2 hosts released
- * before SDK 0.10.0 do not provide it, and a secrets-only extension requests no
+ * FEATURE-DETECT IT: `api.secrets` is optional on every API-v2 context because
+ * older API-v2 hosts do not provide it, and a secrets-only extension requests no
  * permission, so an older host still loads the extension. Guard with
  * `if (context.api.secrets)` and never fall back to `storage` for a credential.
- * Invalid arguments reject (views too, on hosts with agent-code#1151).
+ * Invalid arguments reject.
  */
 export type ExtensionSecretsApi = {
     /** The stored value, or null when absent or no longer decryptable. */
