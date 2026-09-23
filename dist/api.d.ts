@@ -119,20 +119,46 @@ export type NetFetchInit = {
         value: string;
     }>;
     body?: string;
+    /**
+     * 'base64' returns the raw response bytes base64-encoded — use it for audio,
+     * images or any binary body (text decoding would corrupt them). Default
+     * 'text'. Hosts before Agent Code #1150 ignore this field; check
+     * `bodyEncoding` on the result.
+     */
+    responseType?: 'text' | 'base64';
 };
 export type NetFetchResult = {
     status: number;
     contentType: string;
     body: string;
+    /** What the host actually returned. Absent only from hosts before #1150. */
+    bodyEncoding?: 'text' | 'base64';
 };
 export type ExtensionNetApi = {
     /**
-     * Brokered outbound fetch. Requires `net.connect`. The sandbox never opens a
-     * socket — the host checks the target and performs the request. v1 policy:
-     * literal private/loopback IP hosts only (e.g. `http://192.168.1.42:5192/`),
-     * no DNS names, no public addresses; responses are text and capped.
+     * Brokered outbound fetch. The sandbox never opens a socket — the host checks
+     * the target and performs the request. Two targets exist:
+     * - literal private/loopback IP hosts (e.g. `http://192.168.1.42:5192/`),
+     *   requiring `net.connect`;
+     * - the exact HTTPS origins listed in the manifest's `networkOrigins`,
+     *   requiring `net.origins`.
+     * Anything else is refused. Redirects are refused, responses are capped
+     * (256 KiB), and header values never appear in host errors or logs.
      */
     fetch(url: string, init?: NetFetchInit): Promise<NetFetchResult>;
+};
+/**
+ * Per-extension credentials (API v2, no permission). Encrypted by the OS
+ * keychain through the host (Electron safeStorage); scoped to this extension's
+ * id; deleted on uninstall. `set` rejects when the OS cannot encrypt — there
+ * is no plaintext fallback. Keys: 1–64 chars of [a-zA-Z0-9._-]; values:
+ * 1–4096 characters; at most 32 keys.
+ */
+export type ExtensionSecretsApi = {
+    /** The stored value, or null when absent or no longer decryptable. */
+    get(key: string): Promise<string | null>;
+    set(key: string, value: string): Promise<void>;
+    delete(key: string): Promise<void>;
 };
 /**
  * With the `service.transport` permission, a view (or runtime) may also speak

@@ -70,8 +70,8 @@ export type ExtensionContributions = {
  * `permissions: ['fs.write']` once type-checked cleanly and then failed the install.
  * A capability belongs in this union only once the host can actually perform it.
  */
-export type ExtensionCapability = 'workspace.observe' | 'sessions.observe' | 'panes.observe' | 'fs.read' | 'fs.write' | 'notifications.show' | 'service.run' | 'service.transport' | 'net.listen' | 'net.connect';
-type ExtensionCapabilityV1 = Exclude<ExtensionCapability, 'fs.read' | 'fs.write' | 'notifications.show' | 'service.run' | 'service.transport' | 'net.listen' | 'net.connect'>;
+export type ExtensionCapability = 'workspace.observe' | 'sessions.observe' | 'panes.observe' | 'fs.read' | 'fs.write' | 'notifications.show' | 'service.run' | 'service.transport' | 'net.listen' | 'net.connect' | 'net.origins';
+type ExtensionCapabilityV1 = Exclude<ExtensionCapability, 'fs.read' | 'fs.write' | 'notifications.show' | 'service.run' | 'service.transport' | 'net.listen' | 'net.connect' | 'net.origins'>;
 export type ExtensionActivationEvent = 'onStartupFinished' | '*' | `onCommand:${string}` | `onView:${string}`;
 type ExtensionManifestBase = {
     id: string;
@@ -90,6 +90,13 @@ export type ExtensionManifest = ExtensionManifestBase & ({
 } | {
     apiVersion: 2;
     permissions?: ExtensionCapability[];
+    /**
+     * Exact public HTTPS origins (`https://api.example.com`) that
+     * `api.net.fetch` may reach; requires the `net.origins` permission and
+     * vice versa. 1–4 entries; no wildcards, paths, IPs or local names. The
+     * user sees each origin in the install consent dialog.
+     */
+    networkOrigins?: string[];
     contributes?: Omit<ExtensionContributions, 'views' | 'services'> & {
         views?: Array<ExtensionViewContribution & {
             entry: string;

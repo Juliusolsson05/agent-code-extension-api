@@ -7,6 +7,7 @@ export type {
   ExtensionServiceHandle,
   ExtensionServiceStatus,
   ExtensionNetApi,
+  ExtensionSecretsApi,
   NetFetchInit,
   NetFetchResult,
   ExtensionTextFile,

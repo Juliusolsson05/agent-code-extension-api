@@ -1,4 +1,4 @@
-export type { AgentCodeApiV1, ExtensionFilesApi, ExtensionNotificationsApi, ExtensionServicesApi, ExtensionServiceHandle, ExtensionServiceStatus, ExtensionNetApi, NetFetchInit, NetFetchResult, ExtensionTextFile, ExtensionTextFileWrite, JsonValue, } from './api.js';
+export type { AgentCodeApiV1, ExtensionFilesApi, ExtensionNotificationsApi, ExtensionServicesApi, ExtensionServiceHandle, ExtensionServiceStatus, ExtensionNetApi, ExtensionSecretsApi, NetFetchInit, NetFetchResult, ExtensionTextFile, ExtensionTextFileWrite, JsonValue, } from './api.js';
 export type { Disposable, ViewMount, ExtensionContext, ExtensionModule } from './module.js';
 export { defineExtension } from './module.js';
 export type { ExtensionManifest, ExtensionContributions, ExtensionCommandContribution, ExtensionViewContribution, ExtensionServiceContribution, ExtensionSettingContribution, ExtensionKeybindingContribution, ExtensionCapability, ExtensionActivationEvent, ExtensionViewMount, } from './manifest.js';
