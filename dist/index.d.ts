@@ -8,5 +8,5 @@ export { EXTENSION_THEME_COLOR_KEYS } from './themes.js';
 export type { ExtensionThemeColorKey, ExtensionThemeColor, ExtensionThemeContribution } from './themes.js';
 export { defineRuntime, defineView } from './runtime.js';
 export type { RuntimeDisposable, RuntimeViewIdentity, RuntimeApiV2, RuntimeContext, RuntimeModule, ViewContext, ViewModule } from './runtime.js';
-export { defineService, runService } from './service.js';
-export type { ServiceModule, ServiceContext, ServiceRequest, ServiceEndpoint } from './service.js';
+export { defineService, runService, TRANSPORT_ATTESTATION_HEADER, TRANSPORT_ATTESTATION } from './service.js';
+export type { ServiceModule, ServiceContext, ServiceRequest, ServiceEndpoint, TransportAttestation } from './service.js';

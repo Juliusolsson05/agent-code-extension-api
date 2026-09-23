@@ -22,6 +22,49 @@ import type { JsonValue } from './api.js'
 
 export type ServiceEndpoint = { name: string; port: number }
 
+// ── TRANSPORT ATTESTATION ──
+// The host SETS this header on every request it delivers to a service's
+// loopback endpoint, and never copies a caller's own value through:
+//
+//   'service' → the `service.transport` proxy: the owning extension's own view
+//               or runtime (grant and running-state checks already passed).
+//               Same principal as the service; treat it like your own page.
+//   'lan'     → the `net.listen` LAN listener: a guest on the local network.
+//               The listener also sets `x-forwarded-for` (the peer address) and
+//               `x-forwarded-host` (the Host the peer used). Treat the request
+//               as that remote peer, never as local.
+//
+// WHY IT IS EXPORTED: it is a wire contract between the host and every service
+// that tells its own frame apart from LAN guests. Before this export each
+// service hard-coded the string, and nothing tied the two sides together.
+//
+// HOW TO TRUST IT (the header alone proves nothing):
+// - Only on a request that arrived on your LOOPBACK socket. Any process on the
+//   machine can dial loopback and send any header, so combine it with your own
+//   secret, such as a bearer token, when the distinction guards something that
+//   matters.
+// - Only when `Host` is exactly `127.0.0.1:<your port>`. Both host paths dial
+//   that address, so a DNS-rebound browser page (which sends its own name as
+//   Host) is told apart.
+// - Never answer CORS preflights with permissive headers. A browser page can
+//   only attach a custom header cross-origin after a preflight, and refusing it
+//   is what keeps pages on other origins from forging the header.
+// - Absent header: not delivered by either host path, for example another
+//   local process. Apply your strictest rule.
+
+/** Header naming which host path delivered a request to a service. */
+export const TRANSPORT_ATTESTATION_HEADER = 'x-agent-code-transport'
+
+/** The values the host sets in {@link TRANSPORT_ATTESTATION_HEADER}. */
+export const TRANSPORT_ATTESTATION = {
+  /** Through the service.transport proxy, from this extension's own view or runtime. */
+  service: 'service',
+  /** Through the net.listen LAN listener, from a local-network peer. */
+  lan: 'lan',
+} as const
+
+export type TransportAttestation = (typeof TRANSPORT_ATTESTATION)[keyof typeof TRANSPORT_ATTESTATION]
+
 export type ServiceRequest = { id: string; name: string; params?: JsonValue }
 
 export type ServiceContext = {

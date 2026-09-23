@@ -3,6 +3,16 @@ export type ServiceEndpoint = {
     name: string;
     port: number;
 };
+/** Header naming which host path delivered a request to a service. */
+export declare const TRANSPORT_ATTESTATION_HEADER = "x-agent-code-transport";
+/** The values the host sets in {@link TRANSPORT_ATTESTATION_HEADER}. */
+export declare const TRANSPORT_ATTESTATION: {
+    /** Through the service.transport proxy, from this extension's own view or runtime. */
+    readonly service: "service";
+    /** Through the net.listen LAN listener, from a local-network peer. */
+    readonly lan: "lan";
+};
+export type TransportAttestation = (typeof TRANSPORT_ATTESTATION)[keyof typeof TRANSPORT_ATTESTATION];
 export type ServiceRequest = {
     id: string;
     name: string;

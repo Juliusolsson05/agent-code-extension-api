@@ -158,7 +158,7 @@ Passed to `mount(element, context)` in the module you export with `defineView`.
 | --- | :-: | :-: | --- |
 | `extension.id`, `extension.apiVersion` | ✓ | ✓ | none |
 | `storage.get(key)`, `set(key, value)`, `delete(key)`, `keys()` | ✓ | ✓ | none |
-| `secrets.get(key)`, `set(key, value)`, `delete(key)` | ✓ | ✓ | none (API v2; feature-detect `if (api.secrets)`, older v2 hosts lack it) |
+| `secrets.get(key)`, `set(key, value)`, `delete(key)` | ✓ | ✓ | none (API v2, Agent Code ≥ the first supporting version; optional, so feature-detect `if (api.secrets)`) |
 | `net.fetch(url, init)` | ✓ | ✓ | `net.connect` (private IPs) or `net.origins` (declared origins) |
 | `services.start/stop/status/invoke(id, …)` | ✓ | ✓ | `service.run` |
 | `services.expose(id, lan)` | ✓ | ✓ | `net.listen` |
@@ -186,6 +186,7 @@ A runtime has no UI, focus or theme of its own. Views pass it what it needs, suc
 - **`writeText`** is atomic and accepts text up to 64 KiB. Pass `expectedVersion: null` to create a file that must not exist yet, or the `version` from your last read to replace it. A write against a changed file is rejected rather than overwriting newer content.
 
 **Secrets.** For credentials such as an API key; not a second `storage`:
+- Requires Agent Code ≥ the first supporting version (see the CHANGELOG). `api.secrets` is optional in the types; check `if (context.api.secrets)` and never fall back to `storage`.
 - The host encrypts each value with the OS keychain (Electron `safeStorage`). If the OS cannot encrypt, `set` rejects: there is no plaintext fallback.
 - Scoped to your extension id; `get` resolves `null` when absent or no longer decryptable (for example after a keychain reset).
 - Deleted on uninstall, unlike `storage`.
@@ -195,9 +196,15 @@ A runtime has no UI, focus or theme of its own. Views pass it what it needs, suc
 **Network.** `net.fetch(url, { httpMethod, headers, body, responseType })` asks the host to fetch; the sandbox has no network of its own.
 - Private/loopback IP literals need `net.connect`. The exact HTTPS origins in your manifest's `networkOrigins` need `net.origins`. Anything else is refused.
 - The verb field is `httpMethod`. Bodies are strings up to 64 KiB; responses are capped at 256 KiB (the host stops reading at the cap); redirects are refused.
-- Both limits are fixed host limits, not per-call options. They exist because every result crosses a bounded transport. A **background runtime** receives results through a JSON channel of at most 128 Ki characters. That channel admits a `net.fetch` result up to the broker's 256 KiB cap after base64 expansion (plus a small metadata budget), so a runtime and a view receive the same responses. Hosts before agent-code#1151's design round refused a runtime `base64` body above about 96 KiB.
+- Timeouts: 10 s for a private address, 15 s for a declared origin. A timed-out call rejects with a "timed out" error.
+- These limits are fixed host limits, not per-call options. They exist because every result crosses a bounded transport. A **background runtime** receives results through a JSON channel of at most 128 Ki characters. That channel admits a `net.fetch` result up to the broker's 256 KiB cap after base64 expansion (plus a small metadata budget), so a runtime and a view receive the same responses. Hosts older than Agent Code ≥ the first supporting version refused a runtime `base64` body above about 96 KiB.
 - Headers the host uses to identify callers (`x-agent-code-transport`, `forwarded`, `x-forwarded-*`) are refused on every `net.fetch`.
-- The result is `{ status, contentType, body, bodyEncoding }`. Pass `responseType: 'base64'` for binary bodies and check `bodyEncoding`: hosts older than this release ignore `responseType` and return text.
+- The result is `{ status, contentType, body, bodyEncoding }`. Pass `responseType: 'base64'` for binary bodies and check `bodyEncoding`: hosts older than Agent Code ≥ the first supporting version ignore `responseType` and return text.
+
+**Services and transport attestation.** A service written with `runService` can tell who is calling from the `TRANSPORT_ATTESTATION_HEADER` (`x-agent-code-transport`), which the host sets on every request it delivers and never copies from a caller:
+- `TRANSPORT_ATTESTATION.service` (`'service'`): your own view or runtime through `fetch('./__service/<id>/…')`.
+- `TRANSPORT_ATTESTATION.lan` (`'lan'`): a local-network guest through `services.expose(id, true)`. The host also sets `x-forwarded-for` and `x-forwarded-host`. Treat the request as that remote peer.
+- Trust the header only on your loopback socket when `Host` is exactly `127.0.0.1:<your port>`, and never grant CORS. Any local process can send any header, so pair it with your own token when the distinction guards something that matters. The JSDoc on the export gives the full rules.
 
 **Notifications.** `notifications.show(message)` shows an in-app toast in every Agent Code window, prefixed with your extension's name. Messages are at most 200 characters. This is the way to report background work while no view is open. It is not an OS notification.
 
