@@ -79,9 +79,10 @@ export type ExtensionCapability =
   | 'service.transport'
   | 'net.listen'
   | 'net.connect'
+  | 'net.origins'
 type ExtensionCapabilityV1 = Exclude<
   ExtensionCapability,
-  'fs.read' | 'fs.write' | 'notifications.show' | 'service.run' | 'service.transport' | 'net.listen' | 'net.connect'
+  'fs.read' | 'fs.write' | 'notifications.show' | 'service.run' | 'service.transport' | 'net.listen' | 'net.connect' | 'net.origins'
 >
 
 export type ExtensionActivationEvent =
@@ -106,5 +107,12 @@ type ExtensionManifestBase = {
 // type, while the host independently validates the JSON and real file containment.
 export type ExtensionManifest = ExtensionManifestBase & (
   | { apiVersion: 1; permissions?: ExtensionCapabilityV1[]; contributes?: ExtensionContributions }
-  | { apiVersion: 2; permissions?: ExtensionCapability[]; contributes?: Omit<ExtensionContributions, 'views' | 'services'> & { views?: Array<ExtensionViewContribution & { entry: string }>; services?: ExtensionServiceContribution[] } }
+  | { apiVersion: 2; permissions?: ExtensionCapability[];
+      /**
+       * Exact public HTTPS origins (`https://api.example.com`) that
+       * `api.net.fetch` may reach; requires the `net.origins` permission and
+       * vice versa. 1–4 entries; no wildcards, paths, IPs or local names. The
+       * user sees each origin in the install consent dialog.
+       */
+      networkOrigins?: string[]; contributes?: Omit<ExtensionContributions, 'views' | 'services'> & { views?: Array<ExtensionViewContribution & { entry: string }>; services?: ExtensionServiceContribution[] } }
 )

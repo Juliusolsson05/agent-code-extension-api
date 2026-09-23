@@ -158,6 +158,10 @@ Passed to `mount(element, context)` in the module you export with `defineView`.
 | --- | :-: | :-: | --- |
 | `extension.id`, `extension.apiVersion` | ✓ | ✓ | none |
 | `storage.get(key)`, `set(key, value)`, `delete(key)`, `keys()` | ✓ | ✓ | none |
+| `secrets.get(key)`, `set(key, value)`, `delete(key)` | ✓ | ✓ | none (API v2; feature-detect `if (api.secrets)`, older v2 hosts lack it) |
+| `net.fetch(url, init)` | ✓ | ✓ | `net.connect` (private IPs) or `net.origins` (declared origins) |
+| `services.start/stop/status/invoke(id, …)` | ✓ | ✓ | `service.run` |
+| `services.expose(id, lan)` | ✓ | ✓ | `net.listen` |
 | `files.readText({ sessionId, path })` | ✓ | ✓ | `fs.read` |
 | `files.writeText({ sessionId, path, text, expectedVersion })` | ✓ | ✓ | `fs.write` |
 | `notifications.show(message)` | ✓ | ✓ | `notifications.show` |
@@ -180,6 +184,20 @@ A runtime has no UI, focus or theme of its own. Views pass it what it needs, suc
 - **Session ids** come from `sessions.observe()` in a view.
 - **`readText`** returns `{ sessionId, path, text, size, mtimeMs, version }` and accepts files up to 96 KiB.
 - **`writeText`** is atomic and accepts text up to 64 KiB. Pass `expectedVersion: null` to create a file that must not exist yet, or the `version` from your last read to replace it. A write against a changed file is rejected rather than overwriting newer content.
+
+**Secrets.** For credentials such as an API key; not a second `storage`:
+- The host encrypts each value with the OS keychain (Electron `safeStorage`). If the OS cannot encrypt, `set` rejects: there is no plaintext fallback.
+- Scoped to your extension id; `get` resolves `null` when absent or no longer decryptable (for example after a keychain reset).
+- Deleted on uninstall, unlike `storage`.
+- Keys are 1–64 characters of `[a-zA-Z0-9._-]`, values 1–4096 characters, at most 32 keys.
+- The host never logs values or puts them in error messages. Do not put them in toasts, errors or `storage` yourself.
+
+**Network.** `net.fetch(url, { httpMethod, headers, body, responseType })` asks the host to fetch; the sandbox has no network of its own.
+- Private/loopback IP literals need `net.connect`. The exact HTTPS origins in your manifest's `networkOrigins` need `net.origins`. Anything else is refused.
+- The verb field is `httpMethod`. Bodies are strings up to 64 KiB; responses are capped at 256 KiB (the host stops reading at the cap); redirects are refused.
+- Both limits are fixed host limits, not per-call options. They exist because every result crosses a bounded transport. A **background runtime** receives results through a JSON channel of at most 128 Ki characters. That channel admits a `net.fetch` result up to the broker's 256 KiB cap after base64 expansion (plus a small metadata budget), so a runtime and a view receive the same responses. Hosts before agent-code#1151's design round refused a runtime `base64` body above about 96 KiB.
+- Headers the host uses to identify callers (`x-agent-code-transport`, `forwarded`, `x-forwarded-*`) are refused on every `net.fetch`.
+- The result is `{ status, contentType, body, bodyEncoding }`. Pass `responseType: 'base64'` for binary bodies and check `bodyEncoding`: hosts older than this release ignore `responseType` and return text.
 
 **Notifications.** `notifications.show(message)` shows an in-app toast in every Agent Code window, prefixed with your extension's name. Messages are at most 200 characters. This is the way to report background work while no view is open. It is not an OS notification.
 
@@ -206,8 +224,13 @@ Permissions are declared in `permissions`. Agent Code asks the user to approve t
 | `fs.read` | `files.readText` | 2 |
 | `fs.write` | `files.writeText` | 2 |
 | `notifications.show` | `notifications.show` | 2 |
+| `service.run` | `services.start/stop/status/invoke` for `contributes.services` | 2 |
+| `service.transport` | `fetch('./__service/<id>/…')` to your own running service | 2 |
+| `net.listen` | `services.expose(id, true)` | 2 |
+| `net.connect` | `net.fetch` to private/loopback IP literals | 2 |
+| `net.origins` | `net.fetch` to the exact origins in `networkOrigins`; the consent dialog lists them | 2 |
 
-Unknown permissions fail installation. Transcript, Git, prompt and network access are not available.
+Unknown permissions fail installation. Transcript, Git and prompt access are not available.
 
 ## Manifest reference
 
@@ -222,6 +245,7 @@ Unknown permissions fail installation. Transcript, Git, prompt and network acces
 | `keywords` | Up to 24, each at most 40 characters. |
 | `activationEvents` | Up to 32; see [Activation](#activation). |
 | `permissions` | Up to 16; see [Permissions](#permissions). |
+| `networkOrigins` | API v2, with `net.origins` (and only with it). 1–4 exact origins such as `"https://api.example.com"`: https only, a public DNS name, no wildcard, path, trailing slash, query, credentials, IP literal, `localhost` or `.local`. |
 | `contributes` | Commands, views, settings, keybindings and themes, below. |
 
 Contribution ids must start with your extension id and a dot, such as `counter.increment`. Ids must be unique within a manifest.
@@ -275,7 +299,7 @@ Agent Code installs an extension from its GitHub repository:
 
 | Resource | Limit |
 | --- | --- |
-| JSON values (requests, results, published state, storage values) | 4,096 values, depth 32, 128 KiB of text |
+| JSON values (requests, results, published state, storage values) | 4,096 values, depth 32, 128 KiB of text (a `net.fetch` result may reach the 256 KiB body cap after base64) |
 | Runtime startup | 10 s |
 | Command or request | 30 s |
 | Pending calls per extension | 32 |
