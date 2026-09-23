@@ -4,7 +4,7 @@ Release notes for 0.9.0 and earlier are in the annotated git tags (`git tag -l -
 
 ## 0.10.0
 
-Requires **Agent Code ≥ `<AGENT_CODE_VERSION — fill in at release time>`**, the first supporting version. The README and JSDoc refer to it as "Agent Code ≥ the first supporting version". Older hosts refuse a manifest that requests `net.origins`.
+Requires **Agent Code ≥ 0.1.3**, the first supporting version. The README and JSDoc refer to it as "Agent Code ≥ the first supporting version". Older hosts refuse a manifest that requests `net.origins`.
 
 **Feature-detect `api.secrets`.** It is optional (`secrets?`) on every API-v2 context. Older v2 hosts do not provide it, and a secrets-only extension requests no new permission, so an older host still loads it. Check `if (context.api.secrets)` before use, and never fall back to `api.storage` for a credential.
 
