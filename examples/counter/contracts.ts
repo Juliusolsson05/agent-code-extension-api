@@ -1,4 +1,4 @@
-import type { ExtensionManifest, ExtensionThemeContribution, RuntimeContext, TransportAttestation } from '../../dist/index.js'
+import type { ExtensionManifest, ExtensionSessionSnapshot, ExtensionThemeContribution, RuntimeContext, TransportAttestation } from '../../dist/index.js'
 import { TRANSPORT_ATTESTATION, TRANSPORT_ATTESTATION_HEADER } from '../../dist/index.js'
 
 const base = { id: 'example', name: 'Example', description: 'Type contract fixture', version: '1', entry: 'runtime.js' }
@@ -59,3 +59,18 @@ const unknownAttestation: TransportAttestation = 'local'
 void attestedHeader
 void attestations
 void unknownAttestation
+// Session status (0.11.0) is optional because older hosts omit it. If it were
+// required, `row.activity === 'idle'` would compile for a row from an older host
+// and silently read "not working" when the truth is "unknown".
+declare const sessionRow: ExtensionSessionSnapshot
+// @ts-expect-error activity may be absent; feature-detect before treating it as a known state
+const knownActivity: 'working' | 'idle' = sessionRow.activity
+const detectedActivity = sessionRow.activity ?? 'unknown'
+// The machine kind is a closed set; the label is free text for display only.
+// @ts-expect-error notification kinds are output | attention
+const badKind: NonNullable<ExtensionSessionSnapshot['notification']>['kind'] = 'warning'
+const label: string | undefined = sessionRow.notification?.label
+void knownActivity
+void detectedActivity
+void badKind
+void label

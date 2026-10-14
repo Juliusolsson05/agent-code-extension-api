@@ -6,12 +6,43 @@ export type ExtensionWorkspaceSnapshot = {
     tabIds: string[];
     sessionCount: number;
 };
+/**
+ * Is the session busy right now: the same rule as Dispatch's running count and
+ * the composer's Stop button. Deliberately two values, not Dispatch's display
+ * states (starting / running / exited …), which are presentation and change
+ * with the UI. Widening this union later is additive; narrowing it would break
+ * authors.
+ */
+export type ExtensionSessionActivity = 'working' | 'idle';
+/**
+ * The badge Dispatch shows on this session's row.
+ * - `label` is the exact word Dispatch paints: NEW, ACTION, QUESTION, ERROR, …
+ *   Show it as is; the set grows with providers, so do not switch on it.
+ * - `kind` is the stable value to branch on: `attention` means the agent is
+ *   blocked on the user right now (a permission prompt, a question, a failed
+ *   start); `output` means it finished work nobody has looked at yet.
+ * It clears when the user engages with the agent or rests on its pane, exactly
+ * like the Dispatch badge, because it IS that badge.
+ */
+export type ExtensionSessionNotification = {
+    kind: 'output' | 'attention';
+    label: string;
+};
 export type ExtensionSessionSnapshot = {
     id: string;
     /** Provider / terminal / extension-view kind, or null if unset. */
     kind: string | null;
     cwd: string;
     title: string | null;
+    /**
+     * SDK 0.11.0. OPTIONAL because hosts older than Agent Code ≥ the first
+     * supporting version omit it; a current host always sends it. Treat a row
+     * without it as "this host cannot say", never as idle — same feature-detect
+     * pattern as `api.secrets` and `NetFetchResult.bodyEncoding`.
+     */
+    activity?: ExtensionSessionActivity;
+    /** SDK 0.11.0, optional for the same reason as `activity`. `null` means no badge. */
+    notification?: ExtensionSessionNotification | null;
 };
 export type ExtensionPaneSnapshot = {
     tabId: string;
@@ -218,9 +249,13 @@ export interface AgentCodeApiV1 {
         subscribe(listener: () => void): () => void;
     };
     readonly sessions: {
-        /** All sessions' identity/shape. Requires `sessions.observe`. */
+        /** All sessions' identity, shape and live status. Requires `sessions.observe`. */
         observe(): Promise<ExtensionSessionSnapshot[]>;
-        /** Fire on any session change; returns an unsubscribe. Re-read via observe(). */
+        /**
+         * Fire on any session change, including an `activity` or `notification`
+         * change (coalesced, never per streamed token); returns an unsubscribe.
+         * Re-read via observe().
+         */
         subscribe(listener: () => void): () => void;
     };
     readonly panes: {

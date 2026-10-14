@@ -12,6 +12,14 @@ export type {
   NetFetchResult,
   ExtensionTextFile,
   ExtensionTextFileWrite,
+  // The observe snapshots were reachable only as `ReturnType` gymnastics on
+  // AgentCodeApiV1 until 0.11.0. An author writing a pure helper over session
+  // rows (the Skitgubbe agent panel was the first) needs to name the row type.
+  ExtensionWorkspaceSnapshot,
+  ExtensionSessionSnapshot,
+  ExtensionSessionActivity,
+  ExtensionSessionNotification,
+  ExtensionPaneSnapshot,
   JsonValue,
 } from './api.js'
 export type { Disposable, ViewMount, ExtensionContext, ExtensionModule } from './module.js'

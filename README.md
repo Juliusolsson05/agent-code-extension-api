@@ -12,7 +12,7 @@ Your code has no Node.js access, no network access, and no access to Agent Code 
 ## Install
 
 ```bash
-npm i -D github:Juliusolsson05/agent-code-extension-api#v0.8.0
+npm i -D github:Juliusolsson05/agent-code-extension-api#v0.11.0
 ```
 
 The SDK is distributed from GitHub, not npm; its built `dist/` is committed. It contains types and a Vite preset only. Your extension bundles what it uses, so installing an extension never downloads the SDK.
@@ -214,10 +214,13 @@ A runtime has no UI, focus or theme of its own. Views pass it what it needs, suc
 
 **Observation.** Read-only snapshots of Agent Code state:
 - `workspace.observe()` → `{ activeTabId, tabIds, sessionCount }`
-- `sessions.observe()` → `[{ id, kind, cwd, title }]`
+- `sessions.observe()` → `[{ id, kind, cwd, title, activity, notification }]`
+  - `activity`: `'working'` or `'idle'`, the same rule as Dispatch's running count.
+  - `notification`: the badge Dispatch shows on that agent, `{ kind, label }` or `null`. `label` is the word Dispatch paints (NEW, ACTION, QUESTION, ERROR, …); `kind` is `attention` when the agent is waiting on the user now, and `output` for finished work nobody has looked at.
+  - Both need Agent Code ≥ the first supporting version of SDK 0.11.0 and are optional in the types. A row without `activity` comes from an older host: say so rather than showing every agent as idle.
 - `panes.observe()` → `[{ tabId, leafSessionIds }]`
 
-Each `subscribe` listener fires when the data changes. Call `observe()` again to read it.
+Each `subscribe` listener fires when the data changes. Call `observe()` again to read it. `sessions.subscribe` also fires when an agent's `activity` or `notification` changes; the host coalesces these, so streaming output alone never fires it.
 
 ## Permissions
 
