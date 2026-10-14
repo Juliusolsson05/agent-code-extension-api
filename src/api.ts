@@ -31,12 +31,56 @@ export type ExtensionWorkspaceSnapshot = {
   sessionCount: number
 }
 
+/**
+ * Is the session busy right now: the same rule as Dispatch's running count and
+ * the composer's Stop button. Deliberately two values, not Dispatch's display
+ * states (starting / running / exited …), which are presentation and change
+ * with the UI.
+ *
+ * The host WRITES this and authors READ it, so adding a value is the breaking
+ * direction: an author who switches exhaustively stops compiling, and an
+ * extension built against this version meets a value it never handled. Any
+ * new value therefore needs a minor version and a CHANGELOG entry. Authors:
+ * treat a value you do not recognise as "unknown", never as idle.
+ */
+export type ExtensionSessionActivity = 'working' | 'idle'
+
+/**
+ * The badge Dispatch shows on this session's row.
+ * - `label` is the exact word Dispatch paints: NEW, ACTION, QUESTION, ERROR, …
+ *   Show it as is; the set grows with providers, so do not switch on it.
+ * - `kind` is the stable value to branch on: `attention` means the agent is
+ *   blocked on the user right now (a permission prompt, a question, a failed
+ *   start); `output` means it finished work nobody has looked at yet. Adding a
+ *   kind would break exhaustive switches, so it would ship as a minor version.
+ * How it clears, exactly like the Dispatch badge (because it IS that badge):
+ * - `output` clears when the user engages with the agent or rests on its pane.
+ * - `attention` clears when what blocks it resolves: the prompt is answered,
+ *   or the agent starts successfully after a failed start. Looking at the pane
+ *   does not clear it; an answered prompt degrades to `output` (NEW).
+ * Reading it needs `sessions.observe`, not the `notifications.*` permission:
+ * that one is for an extension SHOWING a toast, this is the agent's badge.
+ */
+export type ExtensionSessionNotification = {
+  kind: 'output' | 'attention'
+  label: string
+}
+
 export type ExtensionSessionSnapshot = {
   id: string
   /** Provider / terminal / extension-view kind, or null if unset. */
   kind: string | null
   cwd: string
   title: string | null
+  /**
+   * SDK 0.11.0. OPTIONAL because Agent Code versions before the first
+   * supporting one (see the CHANGELOG) omit it; a current host always sends it. Treat a row
+   * without it as "this host cannot say", never as idle — same feature-detect
+   * pattern as `api.secrets` and `NetFetchResult.bodyEncoding`.
+   */
+  activity?: ExtensionSessionActivity
+  /** SDK 0.11.0, optional for the same reason as `activity`. `null` means no badge. */
+  notification?: ExtensionSessionNotification | null
 }
 
 export type ExtensionPaneSnapshot = {
@@ -255,9 +299,13 @@ export interface AgentCodeApiV1 {
   }
 
   readonly sessions: {
-    /** All sessions' identity/shape. Requires `sessions.observe`. */
+    /** All sessions' identity, shape and live status. Requires `sessions.observe`. */
     observe(): Promise<ExtensionSessionSnapshot[]>
-    /** Fire on any session change; returns an unsubscribe. Re-read via observe(). */
+    /**
+     * Fire on any session change, including an `activity` or `notification`
+     * change (coalesced, never per streamed token); returns an unsubscribe.
+     * Re-read via observe().
+     */
     subscribe(listener: () => void): () => void
   }
 
