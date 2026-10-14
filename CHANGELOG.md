@@ -4,13 +4,14 @@ Release notes for 0.9.0 and earlier are in the annotated git tags (`git tag -l -
 
 ## 0.11.0
 
-Requires **Agent Code ≥ the first supporting version** for the new fields. It is named here once that release ships. On older hosts the fields are absent; nothing else changes.
+Requires **Agent Code ≥ the first supporting version** for the new fields: the first Agent Code release after 0.1.4 (Juliusolsson05/agent-code#1480). On older hosts the fields are absent; nothing else changes.
 
-- **Agent status on session rows.** `sessions.observe()` rows gain two optional fields (`sessions.observe` permission, no new permission):
+- **Agent status on session rows** (views only; runtimes have no observe groups). `sessions.observe()` rows gain two optional fields, under the `sessions.observe` permission (no new permission):
   - `activity?: 'working' | 'idle'`: whether the agent is busy now, the same rule as Dispatch's running count;
-  - `notification?: { kind: 'output' | 'attention'; label: string } | null`: the Dispatch badge for that agent, with `label` the exact word it paints.
-- **`sessions.subscribe` also fires when either field changes.** The host coalesces these, and streaming output alone never fires it.
-- **Feature-detect.** A row without `activity` comes from an older host. Treat it as "unknown", not "idle".
+  - `notification?: { kind: 'output' | 'attention'; label: string } | null`: the Dispatch badge for that agent, with `label` the exact word it paints. `output` clears when the user engages with the agent or rests on its pane; `attention` clears when what blocks it resolves.
+- **Consent wording.** The host's `sessions.observe` install prompt now says it includes whether each session is working or waiting for you. Extensions that already hold the permission receive the two fields without a new prompt.
+- **`sessions.subscribe` also fires when either field changes.** The host coalesces these, and streamed tokens that change neither field do not fire it.
+- **Feature-detect.** A row without `activity` comes from an older host. Treat it as "unknown", not "idle", and treat an unrecognised `activity` value the same way.
 - **New exports:** `ExtensionSessionSnapshot`, `ExtensionSessionActivity`, `ExtensionSessionNotification`, `ExtensionWorkspaceSnapshot`, `ExtensionPaneSnapshot`. The snapshot types existed before but could not be imported by name.
 - The README install line now names the current tag (it still said v0.8.0).
 

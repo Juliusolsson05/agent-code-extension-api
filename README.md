@@ -217,10 +217,12 @@ A runtime has no UI, focus or theme of its own. Views pass it what it needs, suc
 - `sessions.observe()` → `[{ id, kind, cwd, title, activity, notification }]`
   - `activity`: `'working'` or `'idle'`, the same rule as Dispatch's running count.
   - `notification`: the badge Dispatch shows on that agent, `{ kind, label }` or `null`. `label` is the word Dispatch paints (NEW, ACTION, QUESTION, ERROR, …); `kind` is `attention` when the agent is waiting on the user now, and `output` for finished work nobody has looked at.
-  - Both need Agent Code ≥ the first supporting version of SDK 0.11.0 and are optional in the types. A row without `activity` comes from an older host: say so rather than showing every agent as idle.
+  - An `output` badge clears when the user engages with the agent or rests on its pane. An `attention` badge clears when what blocks it resolves (the prompt is answered, or a failed start is followed by a successful one), not when the user looks.
+  - Reading them needs `sessions.observe` only; the `notifications.*` permission is for showing toasts and is unrelated.
+  - Both need Agent Code ≥ the first supporting version (see the CHANGELOG, 0.11.0) and are optional in the types. A row without `activity` comes from an older host: say so rather than showing every agent as idle. Treat an `activity` value you do not recognise as unknown.
 - `panes.observe()` → `[{ tabId, leafSessionIds }]`
 
-Each `subscribe` listener fires when the data changes. Call `observe()` again to read it. `sessions.subscribe` also fires when an agent's `activity` or `notification` changes; the host coalesces these, so streaming output alone never fires it.
+Each `subscribe` listener fires when the data changes. Call `observe()` again to read it. `sessions.subscribe` also fires when an agent's `activity` or `notification` changes. The host coalesces these, and streamed tokens that change neither field do not fire it.
 
 ## Permissions
 

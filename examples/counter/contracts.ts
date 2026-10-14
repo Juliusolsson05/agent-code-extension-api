@@ -1,4 +1,7 @@
-import type { ExtensionManifest, ExtensionSessionSnapshot, ExtensionThemeContribution, RuntimeContext, TransportAttestation } from '../../dist/index.js'
+import type {
+  ExtensionManifest, ExtensionPaneSnapshot, ExtensionSessionActivity, ExtensionSessionNotification, ExtensionSessionSnapshot,
+  ExtensionThemeContribution, ExtensionWorkspaceSnapshot, RuntimeContext, TransportAttestation,
+} from '../../dist/index.js'
 import { TRANSPORT_ATTESTATION, TRANSPORT_ATTESTATION_HEADER } from '../../dist/index.js'
 
 const base = { id: 'example', name: 'Example', description: 'Type contract fixture', version: '1', entry: 'runtime.js' }
@@ -74,3 +77,29 @@ void knownActivity
 void detectedActivity
 void badKind
 void label
+// Review of 0.11.0 (sdk-a/sdk-b): the lines above pinned only `activity`'s
+// optionality and the kind set; these pin the rest of the published surface.
+// `notification` must stay optional AND nullable: absent = older host, null =
+// no badge. Required would make "no badge" compile on a host that cannot say.
+// @ts-expect-error notification may be absent on older hosts
+const knownBadge: ExtensionSessionNotification | null = sessionRow.notification
+const noBadgeRow: ExtensionSessionSnapshot = { id: 's', kind: 'claude', cwd: '/x', title: null, notification: null }
+// The activity set is closed: a new value is a breaking change (see the JSDoc).
+const activities: ExtensionSessionActivity[] = ['working', 'idle']
+// @ts-expect-error activity values are working | idle
+const unknownActivity: ExtensionSessionActivity = 'starting'
+// Both badge fields are required inside a badge.
+const fullBadge: ExtensionSessionNotification = { kind: 'output', label: 'NEW' }
+// @ts-expect-error a badge always carries the word Dispatch paints
+const labelless: ExtensionSessionNotification = { kind: 'output' }
+// The snapshot types are importable by name (the import above fails otherwise).
+declare const workspaceSnapshot: ExtensionWorkspaceSnapshot
+declare const paneSnapshot: ExtensionPaneSnapshot
+void knownBadge
+void noBadgeRow
+void activities
+void unknownActivity
+void fullBadge
+void labelless
+void workspaceSnapshot
+void paneSnapshot
